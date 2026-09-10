@@ -1,0 +1,863 @@
+<!-- Simulateur « Âge de liberté financière » (lead magnet IAU) — MoneyRadar
+     Fragment injectable dans un bloc HTML personnalisé Gutenberg (cf. CLAUDE.md § 13).
+     Racine versionnée .mrlib.v1 : aucun sélecteur nu, aucune police chargée, responsive en @container.
+     Design d'origine conservé. Le gate poste vers le Worker mric-rapport-impots (calculator: liberte-iau). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+.mrlib.v1{container-type:inline-size;container-name:mrlib;position:relative;isolation:isolate;--bg0:#0B1120; --bg1:#0E1A2E; --card:#0d1626; --card2:#101d33;
+  --line:rgba(255,255,255,.12); --txt:#EFF4FF; --sub:#9BB3D0; --mut:#7D93B3;
+  --teal:#00F5C0; --teal-b:rgba(0,245,192,.4); --teal-dim:rgba(0,245,192,.08);
+  --red:#FF3B4E; --red-soft:#FF8B97; --red-dim:rgba(255,59,78,.08); --red-b:rgba(255,59,78,.35);
+  --gold:#F5B53B; --gold-dim:rgba(245,181,59,.08);
+  --r:14px;}
+.mrlib.v1{box-sizing:border-box}
+.mrlib.v1 :where(*){margin:0;padding:0;box-sizing:border-box}
+.mrlib.v1 :where(h1,h2,h3,h4,h5,h6,p,ul,ol,li,table,thead,tbody,tr,td,th,figure,figcaption,details,summary,label,small,b,strong,em,i,span,div,section,button,input,select,textarea){font-family:inherit;color:inherit;line-height:inherit;letter-spacing:normal;text-transform:none}
+.mrlib.v1{font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;color:var(--txt);
+  background:var(--bg0) linear-gradient(160deg,var(--bg0) 0%,var(--bg1) 100%);
+  line-height:1.55;-webkit-font-smoothing:antialiased;}
+.mrlib.v1::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");}
+.mrlib.v1 .wrap{position:relative;z-index:1;max-width:660px;margin:0 auto;padding:24px 20px 72px}
+.mrlib.v1 button,.mrlib.v1 input{font-family:inherit}
+.mrlib.v1 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mrlib.v1 .step{display:none;animation:mrlib-fadeUp .5s ease both}
+.mrlib.v1 .step.active{display:block}
+@keyframes mrlib-fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mrlib.v1 .kicker{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--teal);background:var(--teal-dim);border:1px solid var(--teal-b);
+  padding:6px 14px;border-radius:100px;margin-bottom:18px}
+.mrlib.v1 .kicker.gold{color:var(--gold);background:var(--gold-dim);border-color:rgba(245,181,59,.4)}
+.mrlib.v1 h1{font-size:clamp(30px,6.4vw,44px);font-weight:900;line-height:1.12;letter-spacing:-.02em;margin-bottom:14px}
+.mrlib.v1 h1.h1s{font-size:clamp(24px,5.6vw,36px)}
+.mrlib.v1 h1 em{font-style:normal;color:var(--teal)}
+.mrlib.v1 h1 .red{color:var(--red-soft)}
+.mrlib.v1 .lead{color:var(--sub);font-size:16px;max-width:520px;margin-bottom:30px}
+.mrlib.v1 .lead.small{font-size:14.5px;margin-bottom:20px}
+.mrlib.v1 .lead strong{color:var(--txt)}
+.mrlib.v1 .back{display:inline-block;color:var(--mut);font-size:13px;font-weight:600;text-decoration:none;margin-bottom:16px;cursor:pointer;border:none;background:none;padding:0}
+.mrlib.v1 .back:hover{color:var(--txt)}
+.mrlib.v1 .card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);
+  border-radius:var(--r);padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mrlib.v1 .field{margin-bottom:18px}
+.mrlib.v1 .field label{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-bottom:7px;letter-spacing:.02em}
+.mrlib.v1 .field label span{font-weight:500;color:var(--mut)}
+.mrlib.v1 .field .in{position:relative}
+.mrlib.v1 .field input[type=number],.mrlib.v1 .field input[type=text],.mrlib.v1 .field input[type=email]{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);
+  border-radius:10px;padding:14px 16px;font-size:18px;font-weight:600;color:var(--txt);
+  outline:none;transition:border .2s, box-shadow .2s;-moz-appearance:textfield;appearance:textfield}
+.mrlib.v1 .field .in.unit-r input{padding-right:84px}
+.mrlib.v1 .field input::-webkit-outer-spin-button,.mrlib.v1 .field input::-webkit-inner-spin-button{-webkit-appearance:none}
+.mrlib.v1 .field input:focus{border-color:var(--teal-b);box-shadow:0 0 0 4px rgba(0,245,192,.12)}
+.mrlib.v1 .field input::placeholder{color:rgba(155,179,208,.45);font-weight:500}
+.mrlib.v1 .field .unit{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--mut);font-weight:600;font-size:14px;pointer-events:none}
+.mrlib.v1 .err{display:none;color:var(--red-soft);font-size:12.5px;margin-top:6px;font-weight:600}
+.mrlib.v1 .field.bad input{border-color:var(--red-b)}
+.mrlib.v1 .field.bad .err,.mrlib.v1 .field.bad .pills+.err{display:block}
+.mrlib.v1 .pills{display:flex;gap:10px}
+.mrlib.v1 .pills button{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;
+  padding:13px;font-size:15px;font-weight:700;color:var(--sub);cursor:pointer;transition:.2s}
+.mrlib.v1 .pills button:hover{border-color:rgba(255,255,255,.25)}
+.mrlib.v1 .pills button.on{background:var(--teal-dim);border-color:var(--teal-b);color:var(--teal)}
+.mrlib.v1 .field.bad .pills button{border-color:var(--red-b)}
+.mrlib.v1 .cta{display:block;width:100%;text-align:center;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#00F5C0 0%,#16d6c5 60%,#1aa0e0 100%);color:#06231b;
+  font-size:17px;font-weight:800;padding:17px 22px;border-radius:100px;margin-top:8px;
+  box-shadow:0 14px 44px rgba(0,245,192,.18);transition:transform .15s, box-shadow .2s}
+.mrlib.v1 .cta:hover{transform:translateY(-1px);box-shadow:0 18px 50px rgba(0,245,192,.28)}
+.mrlib.v1 .cta:active{transform:translateY(0)}
+.mrlib.v1 .microtrust{text-align:center;color:var(--mut);font-size:12.5px;margin-top:14px}
+.mrlib.v1 .loader{text-align:center;padding:70px 0}
+.mrlib.v1 .orbit{width:74px;height:74px;margin:0 auto 28px;border-radius:50%;border:2px solid var(--line);
+  border-top-color:var(--teal);animation:mrlib-spin 1s linear infinite}
+@keyframes mrlib-spin{to{transform:rotate(360deg)}}
+.mrlib.v1 .loadline{color:var(--sub);font-size:15px;font-weight:600;min-height:24px}
+.mrlib.v1 .loadline strong{color:var(--txt)}
+.mrlib.v1 .reveal-red{border:1px solid var(--red-b);background:linear-gradient(160deg,rgba(255,59,78,.08),rgba(255,59,78,.03));
+  border-radius:var(--r);padding:22px;margin-bottom:14px}
+.mrlib.v1 .tag{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:block}
+.mrlib.v1 .tag.rouge{color:var(--red-soft)}
+.mrlib.v1 .tag.verte{color:var(--teal)}
+.mrlib.v1 .bignum{font-size:clamp(34px,8vw,48px);font-weight:900;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.mrlib.v1 .bignum small{font-size:.42em;font-weight:700;color:var(--sub);letter-spacing:0}
+.mrlib.v1 .reveal-red .bignum{color:var(--red-soft)}
+.mrlib.v1 .subline{color:var(--sub);font-size:14px;margin-top:8px}
+.mrlib.v1 .subline b{color:var(--txt)}
+.mrlib.v1 .gatebox{position:relative;border:1px solid var(--teal-b);border-radius:var(--r);overflow:hidden;
+  background:linear-gradient(160deg,rgba(0,245,192,.1),rgba(0,245,192,.03));
+  box-shadow:0 0 0 1px rgba(0,245,192,.06),0 18px 50px rgba(0,245,192,.08)}
+.mrlib.v1 .blurwrap{position:relative;padding:22px 22px 8px}
+.mrlib.v1 .blurred{filter:blur(13px);pointer-events:none;user-select:none}
+.mrlib.v1 .blurred .bignum{color:var(--teal)}
+.mrlib.v1 .blurwrap::after{content:"🔒";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:26px;opacity:.9}
+.mrlib.v1 .gateform{padding:18px 22px 22px;background:rgba(11,18,31,.72);border-top:1px solid var(--line)}
+.mrlib.v1 .gateform.standalone{border:1px solid var(--teal-b);border-radius:var(--r);margin-top:16px;
+  background:linear-gradient(160deg,rgba(0,245,192,.08),rgba(11,18,31,.72))}
+.mrlib.v1 .gateform h3{font-size:19px;font-weight:800;margin-bottom:10px;letter-spacing:-.01em}
+.mrlib.v1 .gateform p{color:var(--sub);font-size:13.5px;margin-bottom:14px}
+.mrlib.v1 .gets{list-style:none;margin:0 0 16px}
+.mrlib.v1 .gets li{color:var(--sub);font-size:13.5px;padding:4px 0 4px 26px;position:relative}
+.mrlib.v1 .gets li strong{color:var(--txt)}
+.mrlib.v1 .gets li::before{content:"✓";position:absolute;left:2px;color:var(--teal);font-weight:900}
+.mrlib.v1 .gateform input[type=text],.mrlib.v1 .gateform input[type=email]{width:100%;background:rgba(255,255,255,.08);
+  border:1px solid var(--line);border-radius:10px;padding:13px 15px;color:var(--txt);
+  font-size:15px;font-weight:600;margin-bottom:10px;outline:none;transition:border .2s}
+.mrlib.v1 .gateform input:focus{border-color:var(--teal-b)}
+.mrlib.v1 .gateform input.bad{border-color:var(--red-b)}
+.mrlib.v1 .gateform .err{margin:-4px 0 10px}
+.mrlib.v1 .consent{display:flex;gap:9px;align-items:flex-start;color:var(--mut);font-size:12px;margin:4px 0 12px;cursor:pointer;line-height:1.45}
+.mrlib.v1 .consent input{margin-top:3px;accent-color:var(--teal);flex:none}
+.mrlib.v1 .consent.bad{color:var(--red-soft)}
+.mrlib.v1 .success{text-align:center;padding:10px 0 4px}
+.mrlib.v1 .success .big{font-size:28px;margin-bottom:8px}
+.mrlib.v1 .success h3{font-size:18px;font-weight:800;margin-bottom:6px}
+.mrlib.v1 .success p{color:var(--sub);font-size:14px;margin:0}
+.mrlib.v1 .hero{border:1px solid var(--teal-b);border-radius:var(--r);overflow:hidden;margin-bottom:16px;
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  box-shadow:0 0 0 1px rgba(0,245,192,.08),0 18px 50px rgba(0,245,192,.08)}
+.mrlib.v1 .duo{display:grid;grid-template-columns:1fr 1fr}
+.mrlib.v1 .duo>div{padding:20px}
+.mrlib.v1 .duo .verte{background:linear-gradient(160deg,rgba(0,245,192,.1),rgba(0,245,192,.03))}
+.mrlib.v1 .duo .rouge{background:linear-gradient(160deg,rgba(255,59,78,.07),transparent);border-right:1px solid var(--line)}
+.mrlib.v1 .duo .verte .bignum{color:var(--teal)}
+.mrlib.v1 .duo .rouge .bignum{color:var(--red-soft)}
+.mrlib.v1 .palier{padding:12px 20px;font-size:13.5px;color:var(--sub);border-top:1px solid var(--line);background:rgba(255,255,255,.02)}
+.mrlib.v1 .palier b{color:var(--txt)}
+.mrlib.v1 .rentes{padding:14px 20px;border-top:1px solid var(--line);background:var(--teal-dim);
+  font-size:14px;color:var(--sub);display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}
+.mrlib.v1 .rentes .a{color:var(--red-soft);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
+.mrlib.v1 .rentes .b{color:var(--teal);font-weight:900;font-size:17px;font-variant-numeric:tabular-nums}
+.mrlib.v1 .rentes .x{color:var(--teal);font-weight:800;background:rgba(0,245,192,.12);padding:2px 9px;border-radius:100px;font-size:12.5px}
+.mrlib.v1 .impact{border-left:3px solid var(--teal);padding:14px 18px;background:rgba(255,255,255,.03);
+  border-radius:0 10px 10px 0;color:var(--txt);font-size:15px;margin:20px 0}
+.mrlib.v1 .impact strong{color:var(--teal)}
+.mrlib.v1 h2.sec{font-size:20px;font-weight:800;margin:30px 0 6px;letter-spacing:-.01em}
+.mrlib.v1 p.secsub{color:var(--mut);font-size:13.5px;margin-bottom:14px}
+.mrlib.v1 table.ladder{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  background:linear-gradient(160deg,var(--card),var(--card2));font-size:14.5px}
+.mrlib.v1 .ladder th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);font-weight:800;
+  padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.mrlib.v1 .ladder td{padding:14px;border-bottom:1px solid rgba(255,255,255,.06);font-variant-numeric:tabular-nums;vertical-align:top}
+.mrlib.v1 .ladder tr:last-child td{border-bottom:none}
+.mrlib.v1 .ladder .lib{font-weight:700}
+.mrlib.v1 .ladder .lib small{display:block;font-weight:500;color:var(--mut);font-size:12px}
+.mrlib.v1 .ladder .a{color:var(--red-soft);font-weight:700;white-space:nowrap}
+.mrlib.v1 .ladder .b{color:var(--teal);font-weight:800;white-space:nowrap}
+.mrlib.v1 .ladder .b small{display:block;font-size:11px;font-weight:600;color:var(--sub);white-space:normal;margin-top:2px}
+.mrlib.v1 .ladder tr.ref td{background:rgba(0,245,192,.05)}
+.mrlib.v1 .caps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mrlib.v1 .cap{border-radius:12px;padding:16px;border:1px solid var(--line)}
+.mrlib.v1 .cap.verte{background:var(--teal-dim)}
+.mrlib.v1 .cap.rouge{background:var(--red-dim)}
+.mrlib.v1 .cap .v{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.mrlib.v1 .cap.verte .v{color:var(--teal)}
+.mrlib.v1 .cap.rouge .v{color:var(--red-soft)}
+.mrlib.v1 .cap .l{font-size:12px;color:var(--sub);margin-top:2px}
+.mrlib.v1 .chart{margin-top:14px;border:1px solid var(--line);border-radius:var(--r);padding:16px 14px 8px;
+  background:linear-gradient(160deg,var(--card),var(--card2))}
+.mrlib.v1 .chart .legend{display:flex;gap:16px;font-size:12px;color:var(--sub);margin:6px 0 2px;padding-left:4px;flex-wrap:wrap}
+.mrlib.v1 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.mrlib.v1 .legend i.dash{height:0;border-top:2px dashed rgba(255,255,255,.4);border-radius:0;vertical-align:2px}
+.mrlib.v1 .sliderbox{border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-top:26px;
+  background:linear-gradient(160deg,var(--card),var(--card2))}
+.mrlib.v1 .sliderbox h3{font-size:16px;font-weight:800;margin-bottom:2px}
+.mrlib.v1 .sliderbox p{font-size:13px;color:var(--mut);margin-bottom:14px}
+.mrlib.v1 .sliderrow{display:flex;align-items:center;gap:14px}
+.mrlib.v1 input[type=range]{flex:1;accent-color:var(--teal);height:4px;cursor:pointer}
+.mrlib.v1 .sliderval{font-weight:900;color:var(--teal);font-size:20px;min-width:118px;text-align:right;font-variant-numeric:tabular-nums}
+.mrlib.v1 .slidernote{margin-top:12px;font-size:14px;color:var(--txt);background:var(--teal-dim);
+  border:1px solid var(--teal-b);border-radius:10px;padding:12px 14px;display:none}
+.mrlib.v1 .slidernote.show{display:block}
+.mrlib.v1 .effort{margin-top:12px;font-size:13.5px;color:var(--sub);background:rgba(255,255,255,.03);border:1px solid var(--line);
+  border-radius:10px;padding:11px 14px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between}
+.mrlib.v1 .effort b{color:var(--txt)}
+.mrlib.v1 .linkbtn{background:none;border:1px solid var(--teal-b);color:var(--teal);font-weight:800;font-size:12.5px;
+  padding:6px 12px;border-radius:100px;cursor:pointer;white-space:nowrap}
+.mrlib.v1 .linkbtn:hover{background:var(--teal-dim)}
+.mrlib.v1 .vol{color:var(--mut);font-size:12.5px;margin-top:12px;padding-left:14px;border-left:2px solid var(--line)}
+.mrlib.v1 details.hyp{margin-top:26px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+.mrlib.v1 details.hyp summary{cursor:pointer;padding:14px 16px;font-weight:700;font-size:14px;color:var(--sub);list-style:none}
+.mrlib.v1 details.hyp summary::-webkit-details-marker{display:none}
+.mrlib.v1 details.hyp summary::before{content:"▸ ";color:var(--teal)}
+.mrlib.v1 details.hyp[open] summary::before{content:"▾ "}
+.mrlib.v1 details.hyp div{padding:0 16px 16px;color:var(--mut);font-size:13px}
+.mrlib.v1 details.hyp li{margin:6px 0 6px 16px}
+.mrlib.v1 .amf{margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;
+  color:var(--mut);font-size:12px;background:rgba(255,255,255,.02)}
+.mrlib.v1 .pont{margin-top:34px;text-align:center;border:1px solid var(--teal-b);border-radius:var(--r);
+  padding:30px 24px;background:linear-gradient(180deg,#06291f 0%,#041219 100%);
+  box-shadow:0 0 0 1px rgba(0,245,192,.06),0 18px 50px rgba(0,245,192,.08)}
+.mrlib.v1 .pont h2{font-size:22px;font-weight:900;margin-bottom:10px;letter-spacing:-.01em}
+.mrlib.v1 .pont p{color:var(--sub);font-size:14.5px;max-width:440px;margin:0 auto 6px}
+.mrlib.v1 .pont .mail{margin-top:14px;font-size:13px;color:var(--teal);font-weight:700}
+.mrlib.v1 .edge{border:1px solid rgba(245,181,59,.5);border-radius:var(--r);padding:26px;background:var(--gold-dim)}
+.mrlib.v1 .edge h2{font-size:22px;font-weight:900;margin-bottom:10px;color:var(--gold);letter-spacing:-.01em}
+.mrlib.v1 .edge p{color:var(--sub);font-size:15px;margin-bottom:10px}
+.mrlib.v1 .edge p strong{color:var(--txt)}
+.mrlib.v1 .edge .hook{border-left:3px solid var(--teal);padding:10px 14px;background:rgba(0,245,192,.06);border-radius:0 10px 10px 0;color:var(--txt)}
+.mrlib.v1 .edge .hook strong{color:var(--teal)}
+@container (max-width:560px){.mrlib.v1 .duo{grid-template-columns:1fr}.mrlib.v1 .duo .rouge{border-right:none;border-bottom:1px solid var(--line)}.mrlib.v1 .caps{grid-template-columns:1fr}.mrlib.v1 table.ladder{font-size:13.5px}.mrlib.v1 .ladder td,.mrlib.v1 .ladder th{padding:12px 10px}.mrlib.v1 .card{padding:22px 18px}}
+</style>
+
+<div class="mrlib v1">
+<div class="wrap">
+  <!-- Brand : logo servi depuis moneyradar.org ; si le fichier ne charge pas, repli sur la pastille + wordmark -->
+  
+
+  <!-- ================= STEP 1 : SAISIE ================= -->
+  <section class="step active" id="mrlib-step-form">
+    <span class="kicker">Gratuit · 30 secondes</span>
+    <h1>À quel âge serez-vous <em>libre financièrement</em> ?</h1>
+    <p class="lead">Entrez 4 chiffres. Le simulateur vous dit à quel âge votre patrimoine peut couvrir vos dépenses, <strong>en euros d'aujourd'hui</strong>.</p>
+    <form class="card" id="mrlib-form" novalidate>
+      <div class="field" id="mrlib-f-age"><label for="mrlib-in-age">Votre âge</label>
+        <div class="in unit-r"><input type="number" id="mrlib-in-age" inputmode="numeric" placeholder="30" min="18" max="70" autocomplete="off"><span class="unit">ans</span></div>
+        <div class="err">Entre 18 et 70 ans.</div></div>
+      <div class="field" id="mrlib-f-rev"><label for="mrlib-in-rev">Revenu net mensuel</label>
+        <div class="in unit-r"><input type="number" id="mrlib-in-rev" inputmode="numeric" placeholder="2500" min="500" max="30000" autocomplete="off"><span class="unit">€ / mois</span></div>
+        <div class="err">Entre 500 € et 30 000 €.</div></div>
+      <div class="field" id="mrlib-f-ep"><label for="mrlib-in-ep">Épargne mensuelle possible <span>(0 accepté)</span></label>
+        <div class="in unit-r"><input type="number" id="mrlib-in-ep" inputmode="numeric" placeholder="300" min="0" autocomplete="off"><span class="unit">€ / mois</span></div>
+        <div class="err">Un montant entre 0 et votre revenu.</div></div>
+      <div class="field" id="mrlib-f-cap"><label for="mrlib-in-cap">Capital déjà épargné <span>(livrets, PEA, assurance-vie…)</span></label>
+        <div class="in unit-r"><input type="number" id="mrlib-in-cap" inputmode="numeric" placeholder="8000" min="0" max="2000000" autocomplete="off"><span class="unit">€</span></div>
+        <div class="err">Entre 0 et 2 000 000 €.</div></div>
+      <div class="field" id="mrlib-f-inv"><label>Avez-vous déjà investi en bourse ? <span>(pour adapter les conseils)</span></label>
+        <div class="pills" id="mrlib-pill-inv">
+          <button type="button" data-v="oui">Oui</button>
+          <button type="button" data-v="non">Non</button>
+        </div>
+        <div class="err">Choisissez une réponse.</div></div>
+      <div id="mrlib-gate-early" hidden>
+        <div class="field"><label for="mrlib-in-prenom-early">Prénom</label><div class="in"><input type="text" id="mrlib-in-prenom-early" placeholder="Votre prénom" autocomplete="given-name"></div></div>
+        <div class="field" id="mrlib-f-email-early"><label for="mrlib-in-email-early">Email</label><div class="in"><input type="email" id="mrlib-in-email-early" placeholder="vous@email.com" autocomplete="email"></div>
+          <div class="err">Un email valide est nécessaire pour recevoir vos résultats.</div></div>
+      </div>
+      <button class="cta" type="submit" id="mrlib-btn-calc" style="margin-top:14px">Découvrir mon âge de liberté financière →</button>
+      <p class="microtrust">Gratuit · Sans engagement · Média indépendant, aucune commission sur vos placements</p>
+    </form>
+  </section>
+
+  <!-- ================= STEP 2 : ANIMATION ================= -->
+  <section class="step" id="mrlib-step-load">
+    <div class="loader">
+      <div class="orbit"></div>
+      <p class="loadline" id="mrlib-loadline" aria-live="polite">Calcul de votre âge de liberté financière…</p>
+    </div>
+  </section>
+
+  <!-- ================= STEP 3 : GATE ================= -->
+  <section class="step" id="mrlib-step-gate">
+    <span class="kicker">Vos résultats sont prêts</span>
+    <h1 class="h1s" id="mrlib-gate-title">Votre âge de liberté financière, <span class="red">si rien ne change</span> :</h1>
+    <p class="lead small" id="mrlib-gate-lead" hidden></p>
+    <div class="reveal-red">
+      <span class="tag rouge">🔴 Si votre épargne reste sur des livrets</span>
+      <div class="bignum" id="mrlib-gate-big">—</div>
+      <p class="subline" id="mrlib-gate-sub">—</p>
+    </div>
+    <div class="gatebox">
+      <div class="blurwrap"><div class="blurred" aria-hidden="true">
+        <span class="tag verte">🟢 Si votre épargne travaille</span>
+        <div class="bignum" id="mrlib-gate-blur-big">58 ans</div>
+        <p class="subline" id="mrlib-gate-blur-sub">1 000 € de rente durable · capital de 300 000 €</p>
+      </div></div>
+      <div class="gateform" id="mrlib-gate-main"></div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 4 : RÉSULTATS ================= -->
+  <section class="step" id="mrlib-step-results">
+    <button class="back" id="mrlib-btn-back" type="button">← Modifier mes chiffres</button>
+    <div><span class="kicker">Vos résultats</span></div>
+    <h1 class="h1s">Votre âge de <em>liberté financière</em></h1>
+    <div class="hero">
+      <div class="duo">
+        <div class="rouge"><span class="tag rouge">🔴 Épargne qui dort (livrets)</span><div class="bignum" id="mrlib-h-age-a">—</div><p class="subline" id="mrlib-h-sub-a">—</p></div>
+        <div class="verte"><span class="tag verte">🟢 Épargne qui travaille (investi)</span><div class="bignum" id="mrlib-h-age-b">—</div><p class="subline" id="mrlib-h-sub-b">—</p></div>
+      </div>
+      <div class="palier" id="mrlib-h-palier">—</div>
+      <div class="rentes"><span>À <b id="mrlib-h-H">65</b> ans, votre patrimoine vous verse</span><span class="a" id="mrlib-h-rente-a">—</span><span>vs</span><span class="b" id="mrlib-h-rente-b">—</span><span class="x" id="mrlib-h-mult">—</span></div>
+    </div>
+    <p class="impact" id="mrlib-r-impact">—</p>
+
+    <h2 class="sec">Votre échelle de liberté</h2>
+    <p class="secsub">L'âge auquel votre patrimoine finance chaque palier, durablement (retrait de 4 %/an).</p>
+    <table class="ladder">
+      <tr><th>Palier</th><th>🔴 Livrets</th><th>🟢 Investi</th></tr>
+      <tr id="mrlib-row0"><td class="lib">500 € / mois<small>les factures respirent</small></td><td class="a" id="mrlib-l0a">—</td><td class="b" id="mrlib-l0b">—</td></tr>
+      <tr id="mrlib-row1"><td class="lib">1 000 € / mois<small>la mi-liberté</small></td><td class="a" id="mrlib-l1a">—</td><td class="b" id="mrlib-l1b">—</td></tr>
+      <tr id="mrlib-row2"><td class="lib" id="mrlib-l2lbl">Liberté totale<small>—</small></td><td class="a" id="mrlib-l2a">—</td><td class="b" id="mrlib-l2b">—</td></tr>
+    </table>
+
+    <div class="caps">
+      <div class="cap rouge"><div class="v" id="mrlib-cap-a">—</div><div class="l">capital à <span class="caph">65</span> ans, livrets + compte courant (euros d'aujourd'hui)</div></div>
+      <div class="cap verte"><div class="v" id="mrlib-cap-b">—</div><div class="l">capital à <span class="caph">65</span> ans, investi (euros d'aujourd'hui)</div></div>
+    </div>
+
+    <div class="chart">
+      <svg id="mrlib-svg-chart" viewBox="0 0 600 250" width="100%" style="display:block;height:auto" role="img" aria-label="Comparaison des deux trajectoires de capital"></svg>
+      <div class="legend"><span><i style="background:var(--teal)"></i>Investi</span><span><i style="background:var(--red)"></i>Livrets</span><span><i class="dash"></i>Paliers (règle des 25x)</span></div>
+    </div>
+
+    <div class="sliderbox">
+      <h3>Et si vous épargniez un peu plus ?</h3>
+      <p>Glissez pour voir l'effet d'un effort supplémentaire, investi.</p>
+      <div class="sliderrow">
+        <input type="range" id="mrlib-slider" min="0" max="1500" step="25" aria-label="Épargne mensuelle simulée">
+        <div class="sliderval" id="mrlib-slider-val">300 € /mois</div>
+      </div>
+      <div class="slidernote" id="mrlib-slider-note"></div>
+      <div class="effort" id="mrlib-effort" hidden><span id="mrlib-effort-txt"></span><button class="linkbtn" type="button" id="mrlib-btn-effort">Tester ce montant</button></div>
+      <p class="vol">Trajectoire lissée à la moyenne historique : la réalité fluctue autour de cette ligne, parfois fortement. C'est le prix du rendement.</p>
+    </div>
+
+    <details class="hyp">
+      <summary>Nos hypothèses de calcul, en transparence</summary>
+      <div><ul>
+        <li>Scénario « épargne qui dort » : Livret A + LDDS à 2 %/an (environ l'inflation, l'argent ne bouge pas en pouvoir d'achat) jusqu'au plafond de 34 950 € par personne. Au-delà, l'argent reste sur le compte courant à 0 %, soit -2 %/an en pouvoir d'achat. Les fonds euros d'assurance-vie font environ l'inflation en longue période : les y placer revient au cas du livret. Plafonds supposés revalorisés avec l'inflation.</li>
+        <li>Scénario investi : 6,8 %/an net de frais (moyenne historique longue du marché actions mondial, frais d'ETF déduits).</li>
+        <li>Inflation : 2 %/an, moyenne IPC France longue période (INSEE). <strong>Tous les montants sont en pouvoir d'achat d'aujourd'hui.</strong></li>
+        <li>Rentes calculées avec un taux de retrait de 4 %/an (règle des 25x).</li>
+        <li>Un palier est « atteint » quand le patrimoine peut le verser durablement : 25x pour le portefeuille investi (quasi perpétuel à 4,7 % réel). Un livret à 0 % réel s'épuise en 25 ans : il doit couvrir le palier jusqu'à 90 ans, avec 25x comme minimum.</li>
+        <li>« Liberté totale » = vos dépenses courantes (revenu moins épargne) couvertes par votre patrimoine.</li>
+        <li>Épargne mensuelle supposée suivre l'inflation. Horizon : 65 ans (ou votre âge + 15 ans après 50 ans).</li>
+      </ul></div>
+    </details>
+    <p class="amf">Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte partielle ou totale du capital. Ce simulateur est fourni à titre informatif et ne constitue pas un conseil en investissement personnalisé.</p>
+
+    <div class="pont">
+      <h2>Vous savez maintenant où mène chaque trajectoire.</h2>
+      <p>Passer du rouge au vert tient en 4 étapes, dans un ordre précis. On vous les explique dans les prochains jours, avec vos chiffres.</p>
+      <p class="mail">📬 Premier email dans quelques minutes.</p>
+    </div>
+  </section>
+
+  <!-- ================= EDGE : ÉPARGNE 0 ================= -->
+  <section class="step" id="mrlib-step-zero">
+    <span class="kicker gold">Votre résultat</span>
+    <div class="edge">
+      <h2>Votre premier levier n'est pas le rendement.</h2>
+      <p>Avec 0 € d'épargne mensuelle, aucun placement ne peut travailler pour vous. Ce n'est la faute d'aucun produit : c'est une question de flux.</p>
+      <p class="hook" id="mrlib-zero-hook">—</p>
+      <p><strong>Le vrai point de départ : dégager 50 €/mois.</strong> C'est exactement l'objet de la Phase 1 de la méthode Investisseur Autonome (la photo financière, puis le bouclier de sécurité).</p>
+    </div>
+    <div class="gateform standalone" id="mrlib-gate-zero"></div>
+  </section>
+
+  <!-- ================= EDGE : DÉJÀ LIBRE ================= -->
+  <section class="step" id="mrlib-step-libre">
+    <span class="kicker gold">Votre résultat</span>
+    <div class="edge">
+      <h2>Votre capital couvre déjà vos dépenses.</h2>
+      <p id="mrlib-libre-detail">—</p>
+      <p>Votre sujet n'est plus « comment commencer » : c'est la stratégie, l'allocation et la protection d'un patrimoine constitué. C'est le terrain de <strong>Macro Insider</strong> : analyses macro et portefeuilles clé en main.</p>
+    </div>
+    <div class="gateform standalone" id="mrlib-gate-libre"></div>
+  </section>
+
+  
+</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var ROOT = document.querySelector('.mrlib.v1');
+if (!ROOT) return;
+var PFX  = 'mrlib-';
+var CALC = 'liberte-iau';
+
+/* ================================================================
+   CONFIG
+================================================================ */
+const CONFIG = {
+  gatePosition: 'results',      // 'results' (gate email avant résultats) | 'entry' (A/B : email dans le formulaire initial)
+  webhookUrl: window.MRIC_WORKER_ENDPOINT || 'https://mric-rapport-impots.lingering-frost-26a0.workers.dev',
+  horizonDefault: 65,
+  inflation: 0.02,              // IPC France, moyenne longue période (INSEE)
+  livretNominal: 0.02,          // scénario A : Livret A + LDDS
+  plafondLivret: 34950,         // Livret A 22 950 € + LDDS 12 000 € (par personne). Supposé revalorisé avec l'inflation.
+  surplusNominal: 0.0,          // au-delà du plafond : compte courant à 0 % nominal (mettre 0.02 pour neutraliser le plafond)
+  investNominal: 0.068,         // 7 % brut - 0,2 % frais ETF (aligné formation IAU)
+  swr: 0.04,                    // règle des 25x
+  paliers: [500, 1000],         // paliers fixes ; palier 3 = dépenses réelles
+  ageJamais: 85,                // au-delà : "jamais"
+  ageTard: 75,                  // au-delà côté investi : "après 75 ans"
+  ageFin: 90,                   // le livret (0 % réel) doit couvrir le palier jusqu'à cet âge, minimum 25x
+  loaderMs: 2400
+};
+const PALIER_LBL = [
+  { short: '500 €/mois', name: 'les factures respirent' },
+  { short: '1 000 €/mois', name: 'la mi-liberté' },
+  { short: 'la liberté totale', name: 'vos dépenses couvertes' }
+];
+
+/* ================================================================
+   MOTEUR : tout en euros constants
+================================================================ */
+const rReal = (nominal) => Math.pow((1 + nominal) / (1 + CONFIG.inflation), 1/12) - 1;
+const R = { livret: rReal(CONFIG.livretNominal), invest: rReal(CONFIG.investNominal), surplus: rReal(CONFIG.surplusNominal) };
+
+function fv(P, S0, months, r){
+  if (Math.abs(r) < 1e-9) return S0 + P * months;
+  return S0 * Math.pow(1+r, months) + P * ((Math.pow(1+r, months) - 1) / r);
+}
+/* Scénario "épargne qui dort" : livrets réglementés jusqu'au plafond, surplus sur compte courant. Simulation mensuelle. */
+function livretInit(S0){ const L = Math.min(S0, CONFIG.plafondLivret); return { L, S: S0 - L }; }
+function livretStep(st, P){
+  let L = st.L * (1 + R.livret), S = st.S * (1 + R.surplus);
+  const room = Math.max(0, CONFIG.plafondLivret - L);
+  const toL = Math.min(P, room); L += toL; S += P - toL;
+  return { L, S };
+}
+function fvLivret(P, S0, months){
+  let st = livretInit(S0);
+  for (let n = 0; n < months; n++) st = livretStep(st, P);
+  return st.L + st.S;
+}
+/* target : nombre ou fonction (âge) => cible. side : 'a' (livret simulé) | 'b' (investi, taux r) */
+function monthsTo(P, S0, target, side, age0){
+  const T = typeof target === 'function' ? target : () => target;
+  if (S0 >= T(age0)) return 0;
+  let n = 0;
+  if (side === 'a'){
+    let st = livretInit(S0);
+    while (st.L + st.S < T(age0 + n/12) && n < 1440){ st = livretStep(st, P); n++; }
+  } else {
+    let cap = S0;
+    while (cap < T(age0 + n/12) && n < 1440){ cap = cap * (1+R.invest) + P; n++; }
+  }
+  return n >= 1440 ? Infinity : n;
+}
+/* mensualité nécessaire pour atteindre target à l'horizon, scénario investi */
+function pmtFor(S0, target, months, r){
+  const g = Math.pow(1+r, months);
+  if (months <= 0) return Infinity;
+  if (Math.abs(r) < 1e-9) return (target - S0) / months;
+  return (target - S0 * g) * r / (g - 1);
+}
+const roundK  = v => Math.round(v/1000)*1000;
+const round10 = v => Math.round(v/10)*10;
+const round5  = v => Math.round(v/5)*5;
+const fmtEUR  = v => Math.round(v).toLocaleString('fr-FR') + ' €';
+const fmtX    = v => (Math.round(v*10)/10).toLocaleString('fr-FR');
+
+function compute(d){
+  const dep = d.revenu - d.epargne;
+  const horizon = d.age > 50 ? d.age + 15 : CONFIG.horizonDefault;
+  const nH = (horizon - d.age) * 12;
+  const cibleTotale = dep * 12 / CONFIG.swr;
+  const cibles = [CONFIG.paliers[0]*12/CONFIG.swr, CONFIG.paliers[1]*12/CONFIG.swr, cibleTotale];
+
+  const capA = fvLivret(d.epargne, d.capital, nH);
+  const capB = fv(d.epargne, d.capital, nH, R.invest);
+  const renteA = round10(capA * CONFIG.swr / 12);
+  const renteB = round10(capB * CONFIG.swr / 12);
+
+  const ageAt = (target, side) => { const m = monthsTo(d.epargne, d.capital, target, side, d.age); return m === Infinity ? Infinity : d.age + m/12; };
+  // investi : règle des 4 % (25x), quasi perpétuelle à 4,7 % réel.
+  // livret (0 % réel) : 25x ne suffit pas à verser une rente durable ; il doit couvrir le palier jusqu'à ageFin, avec 25x comme minimum.
+  const mensuels = [CONFIG.paliers[0], CONFIG.paliers[1], dep];
+  const ladder = cibles.map((c, i) => ({
+    a: ageAt(age => Math.max(c, mensuels[i] * 12 * Math.max(0, CONFIG.ageFin - age)), 'a'),
+    b: ageAt(c, 'b')
+  }));
+
+  // palier de référence : le plus haut atteint côté investi avant ageTard
+  let ref = -1;
+  for (let i = 2; i >= 0; i--){ if (ladder[i].b <= CONFIG.ageTard){ ref = i; break; } }
+
+  // effort : premier palier NON atteint avant l'horizon côté investi, et la mensualité qu'il exigerait
+  let effort = null;
+  const nextIdx = ladder.findIndex(l => l.b > horizon);
+  if (nextIdx >= 0){
+    let P;
+    if (nextIdx < 2){ P = pmtFor(d.capital, cibles[nextIdx], nH, R.invest); }
+    else {
+      // liberté totale : la cible dépend de l'épargne (dépenses = revenu - épargne) ; f(P) est croissante, bissection
+      const f = P => fv(P, d.capital, nH, R.invest) - (d.revenu - P) * 12 / CONFIG.swr;
+      let lo = 0, hi = d.revenu;
+      if (f(lo) >= 0) P = 0; else if (f(hi) < 0) P = Infinity;
+      else { for (let i = 0; i < 50; i++){ const mid = (lo + hi) / 2; if (f(mid) < 0) lo = mid; else hi = mid; } P = hi; }
+    }
+    P = Math.max(0, P);
+    effort = { idx: nextIdx, P: P === Infinity ? Infinity : round5(P), reachable: P <= d.revenu * 0.8 };
+  }
+
+  return { dep, horizon, cibles, cibleTotale, capA: roundK(capA), capB: roundK(capB), renteA, renteB,
+           mult: renteA > 0 ? (renteB/renteA) : Infinity, ladder, ref, effort };
+}
+function fmtAge(age, side){
+  if (age === Infinity || age > CONFIG.ageJamais) return 'jamais';
+  if (age > CONFIG.ageTard) return side === 'b' ? 'après 75 ans' : 'jamais';
+  return Math.round(age) + ' ans';
+}
+const isAge = s => /ans$/.test(s) && !/après/.test(s);
+/* libellé d'un palier dans une phrase */
+const palierPhrase = (i, dep) => i < 2 ? `${PALIER_LBL[i].short} de rente durable` : `la liberté totale (${fmtEUR(dep)}/mois couverts)`;
+
+/* ================================================================
+   TRACKING + ESP (stubs à brancher)
+================================================================ */
+function trackEvent(name, payload = {}){
+  // GTM est deja charge sur moneyradar.org : on pousse dans le dataLayer.
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: 'mrlib_' + name, calculator: CALC, ...payload });
+  } catch (e) {}
+}
+function pushToESP(payload){
+  if (!CONFIG.webhookUrl) return Promise.resolve();
+  return fetch(CONFIG.webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    keepalive: true
+  }).then(function(res){
+    if (!res.ok) console.warn('[MRIC lead] Worker HTTP ' + res.status);
+  }).catch(function(err){
+    console.warn('[MRIC lead] Worker error:', err);
+  });
+}
+
+/* ================================================================
+   UI
+================================================================ */
+const $ = id => ROOT.querySelector('#' + PFX + id);
+const show = id => { ROOT.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); ROOT.scrollIntoView({block:'start',behavior:'smooth'}); };
+let state = { dejaInvesti: null, data: null, res: null, unlocked: false };
+
+if (CONFIG.gatePosition === 'entry') $('gate-early').hidden = false;
+
+ROOT.querySelectorAll('#' + PFX + 'pill-inv button').forEach(b => b.onclick = () => {
+  ROOT.querySelectorAll('#' + PFX + 'pill-inv button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.dejaInvesti = b.dataset.v; $('f-inv').classList.remove('bad');
+});
+['in-age','in-rev','in-ep','in-cap','in-email-early'].forEach(id => $(id).addEventListener('input', () => $(id).closest('.field').classList.remove('bad')));
+
+function validate(){
+  let ok = true, first = null;
+  const age = +$('in-age').value, rev = +$('in-rev').value,
+        ep = $('in-ep').value === '' ? NaN : +$('in-ep').value,
+        cap = $('in-cap').value === '' ? NaN : +$('in-cap').value;
+  const mark = (id, bad) => { $(id).classList.toggle('bad', bad); if (bad){ ok = false; first = first || id; } };
+  mark('f-age', !(age >= 18 && age <= 70));
+  mark('f-rev', !(rev >= 500 && rev <= 30000));
+  mark('f-ep',  !(ep >= 0 && ep <= rev));
+  mark('f-cap', !(cap >= 0 && cap <= 2000000));
+  mark('f-inv', state.dejaInvesti === null);
+  if (CONFIG.gatePosition === 'entry') mark('f-email-early', !/.+@.+\..+/.test($('in-email-early').value.trim()));
+  if (!ok){ const inp = $(first).querySelector('input'); if (inp) inp.focus(); }
+  return ok ? { age, revenu: rev, epargne: ep, capital: cap } : null;
+}
+
+$('form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const d = validate(); if (!d) return;
+  state.data = d;
+  state.res = compute(d);
+  trackEvent('simulation_started', { deja_investi: state.dejaInvesti, ...d });
+  show('step-load');
+  const lines = ['Calcul de votre âge de liberté financière…','Projection en <strong>pouvoir d\'achat réel</strong>…','Résultats prêts.'];
+  let i = 0; $('loadline').innerHTML = lines[0];
+  const ms = state.unlocked ? 1000 : CONFIG.loaderMs;
+  const tick = setInterval(()=>{ i++; if (i < lines.length) $('loadline').innerHTML = lines[i]; }, ms/3);
+  setTimeout(()=>{ clearInterval(tick); route(); }, ms);
+});
+$('btn-back').onclick = () => { show('step-form'); trackEvent('back_to_form'); };
+
+function route(){
+  const { data:d, res:r } = state;
+  trackEvent('simulation_completed', { ref: r.ref, renteB: r.renteB, renteA: r.renteA, horizon: r.horizon });
+
+  if (d.capital >= r.cibleTotale){                       // déjà libre -> Macro Insider
+    $('libre-detail').textContent = `Avec ${fmtEUR(d.capital)} de capital pour ${fmtEUR(r.dep)} de dépenses mensuelles, la règle des 25x est déjà satisfaite : un retrait de 4 %/an vous verse ${fmtEUR(d.capital*CONFIG.swr/12)}/mois, durablement.`;
+    mountGate('gate-libre', {
+      title: 'Recevez les analyses Macro Insider',
+      intro: 'Vos chiffres, puis nos analyses macro et l\'accès aux portefeuilles clé en main.',
+      cta: 'Recevoir les analyses →', segment: 'libre'
+    });
+    show('step-libre'); return;
+  }
+  if (d.epargne === 0){                                  // épargne 0 -> écran dédié + capture
+    const alt = compute({ ...d, epargne: 50 });
+    const p0 = alt.ladder[0].b;
+    $('zero-hook').innerHTML = `Dégager <strong>50 €/mois</strong> et les investir dès aujourd'hui : <strong>${fmtEUR(alt.renteB)}/mois</strong> de rente à ${alt.horizon} ans` +
+      (p0 <= CONFIG.ageTard ? `, et 500 € de rente durable dès <strong>${fmtAge(p0,'b')}</strong>.` : '.');
+    mountGate('gate-zero', {
+      title: 'Recevez la méthode pour dégager vos premiers 50 €/mois',
+      intro: 'Étape par étape, par email, avec vos chiffres.',
+      cta: 'Recevoir la méthode →', segment: 'zero'
+    });
+    show('step-zero'); return;
+  }
+  if (state.unlocked){ renderResults(); show('step-results'); return; }   // retour "modifier mes chiffres"
+  if (CONFIG.gatePosition === 'entry'){                  // variante A/B : email déjà collecté
+    subscribe($('in-prenom-early').value.trim(), $('in-email-early').value.trim(), 'standard', '');
+    state.unlocked = true; renderResults(); show('step-results'); return;
+  }
+  renderGate(); show('step-gate');
+}
+
+/* ---------- GATE ---------- */
+function renderGate(){
+  const { data:d, res:r } = state;
+  const ref = r.ref;
+  if (state.dejaInvesti === 'oui'){
+    $('gate-title').innerHTML = `Votre âge de liberté financière, <span class="red">si votre épargne dormait sur un livret</span> :`;
+    $('gate-lead').textContent = 'Vous avez déjà commencé à investir : la vraie question devient la cohérence de votre stratégie. Ce résultat compare les deux extrêmes, la suite vous aide à situer votre portefeuille entre les deux.';
+    $('gate-lead').hidden = false;
+  } else {
+    $('gate-title').innerHTML = `Votre âge de liberté financière, <span class="red">si rien ne change</span> :`;
+    $('gate-lead').hidden = true;
+  }
+  if (ref >= 0){
+    const ageA = fmtAge(r.ladder[ref].a,'a');
+    $('gate-big').textContent = ageA;
+    $('gate-sub').innerHTML = `pour ${palierPhrase(ref, r.dep)}, si votre épargne reste sur un livret. À ${r.horizon} ans, ce livret vous verse <b>${fmtEUR(r.renteA)}/mois</b>.`;
+    $('gate-blur-big').textContent = '58 ans';
+    $('gate-blur-sub').textContent = `${PALIER_LBL[ref].short} de rente durable · capital de 300 000 €`;
+  } else {
+    $('gate-big').textContent = 'jamais';
+    $('gate-sub').innerHTML = `Aucun palier de liberté atteint avant 75 ans à ce rythme. À ${r.horizon} ans, votre livret vous verse <b>${fmtEUR(r.renteA)}/mois</b>.`;
+    $('gate-blur-big').textContent = '+120 €/mois';
+    $('gate-blur-sub').textContent = 'ce qu\'il faudrait, investi, pour 500 € de rente à 65 ans';
+  }
+  mountGate('gate-main', {
+    title: 'Débloquez votre résultat complet',
+    gets: [
+      'Votre <strong>âge de liberté financière</strong> si votre épargne travaille, et l\'écart avec le livret',
+      'Votre <strong>échelle de liberté</strong> : à quel âge 500 €, 1 000 €, puis toutes vos dépenses sont couvertes',
+      'Le <strong>graphique</strong> de vos deux trajectoires + le curseur d\'effort (« et si j\'épargnais 50 € de plus ? »)',
+      'Le <strong>plan en 4 étapes</strong> pour passer du rouge au vert, envoyé par email avec vos chiffres'
+    ],
+    cta: 'Voir mon âge de liberté financière →', segment: 'standard',
+    onDone: () => { state.unlocked = true; trackEvent('email_unlocked'); renderResults(); show('step-results'); }
+  });
+}
+
+/* formulaire email réutilisable (gate principal + écrans edge) */
+function mountGate(id, { title, intro, gets, cta, segment, onDone }){
+  const el = $(id);
+  el.innerHTML = `
+    <h3>${title}</h3>
+    ${intro ? `<p>${intro}</p>` : ''}
+    ${gets ? `<ul class="gets">${gets.map(g=>`<li>${g}</li>`).join('')}</ul>` : ''}
+    <label class="vh" for="${PFX}${id}-p">Prénom</label>
+    <input type="text" id="${PFX}${id}-p" placeholder="Votre prénom" autocomplete="given-name">
+    <label class="vh" for="${PFX}${id}-e">Email</label>
+    <input type="email" id="${PFX}${id}-e" placeholder="vous@email.com" autocomplete="email" inputmode="email">
+    <div class="err" id="${PFX}${id}-err">Entrez un email valide.</div>
+    <input type="text" id="${PFX}${id}-co" class="vh" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <label class="consent" id="${PFX}${id}-cl"><input type="checkbox" id="${PFX}${id}-c"><span>J'accepte de recevoir mes résultats et le plan en 4 étapes par email, ainsi que les conseils Money Radar pour les appliquer. Désinscription en un clic.</span></label>
+    <button class="cta" type="button" id="${PFX}${id}-btn" style="margin-top:0">${cta}</button>`;
+  const email = $(`${id}-e`), consent = $(`${id}-c`);
+  email.addEventListener('input', () => { email.classList.remove('bad'); $(`${id}-err`).style.display = 'none'; });
+  consent.addEventListener('change', () => $(`${id}-cl`).classList.remove('bad'));
+  const go = () => {
+    const p = $(`${id}-p`).value.trim(), e = email.value.trim();
+    if (!/.+@.+\..+/.test(e)){ email.classList.add('bad'); $(`${id}-err`).style.display = 'block'; email.focus(); return; }
+    if (!consent.checked){ $(`${id}-cl`).classList.add('bad'); return; }
+    subscribe(p, e, segment, $(`${id}-co`) ? $(`${id}-co`).value : '');
+    if (onDone) onDone();
+    else el.innerHTML = `<div class="success"><div class="big">📬</div><h3>C'est envoyé${p ? ', ' + p : ''}.</h3><p>Premier email dans quelques minutes. Vérifiez vos indésirables si rien n'arrive.</p></div>`;
+  };
+  $(`${id}-btn`).onclick = go;
+  email.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); });
+}
+
+function subscribe(prenom, email, segment, honeypot){
+  const { data: d, res: r } = state;
+  const utm = Object.fromEntries(new URLSearchParams(location.search));
+  const refIdx = r.ref;
+
+  pushToESP({
+    email: email,
+    prenom: prenom,
+    consent: true,
+    consentTimestamp: new Date().toISOString(),
+    calculator: CALC,
+    company: honeypot || '',
+    inputs: {
+      age: d.age, revenu: d.revenu, epargne: d.epargne, capital: d.capital,
+      dejaInvesti: state.dejaInvesti === 'oui'
+    },
+    results: {
+      segment: segment,
+      horizon: r.horizon,
+      depenses: r.dep,
+      palierRef: refIdx >= 0 ? (CONFIG.paliers[refIdx] ?? 'totale') : null,
+      ageLiberteInvestiTxt: fmtAge(r.ladder[refIdx >= 0 ? refIdx : 0].b, 'b'),
+      ageLiberteLivretTxt: fmtAge(r.ladder[refIdx >= 0 ? refIdx : 0].a, 'a'),
+      capitalInvesti: r.capB,
+      capitalLivret: r.capA,
+      renteInvesti: r.renteB,
+      renteLivret: r.renteA,
+      agePalier500Investi: r.ladder[0].b === Infinity ? null : Math.round(r.ladder[0].b),
+      agePalier1000InvestiTxt: fmtAge(r.ladder[1].b, 'b'),
+      multipleRente: r.mult === Infinity ? null : Math.round(r.mult * 10) / 10,
+      effortProchainPalier: r.effort && r.effort.P !== Infinity ? r.effort.P : null
+    },
+    meta: { utm: utm, page: location.pathname }
+  });
+}
+
+/* ---------- RÉSULTATS ---------- */
+function renderResults(){
+  render(state.data, state.res);
+  initSlider(state.data);
+}
+
+function render(d, r){
+  const H = r.horizon, ref = r.ref;
+  ROOT.querySelectorAll('.caph').forEach(x=>x.textContent = H);
+  $('h-H').textContent = H;
+
+  // hero : âge de liberté sur le palier de référence
+  const idx = ref >= 0 ? ref : 0;
+  const ageA = fmtAge(r.ladder[idx].a,'a'), ageB = fmtAge(r.ladder[idx].b,'b');
+  $('h-age-a').textContent = ageA; $('h-age-b').textContent = ageB;
+  $('h-sub-a').textContent = isAge(ageA) ? `dans ${Math.round(r.ladder[idx].a - d.age)} ans` : 'les livrets ne rattrapent pas l\'inflation';
+  const gainY = Math.round(r.ladder[idx].a - r.ladder[idx].b);
+  $('h-sub-b').textContent = isAge(ageB) ? `dans ${Math.round(r.ladder[idx].b - d.age)} ans` + (isAge(ageA) && gainY >= 1 ? ` · ${gainY} an${gainY>1?'s':''} plus tôt que le livret` : '') : 'sans effort supplémentaire';
+  if (ref >= 0){
+    let txt = ref < 2 ? `Palier atteint : <b>${PALIER_LBL[ref].short}</b> de rente durable (${PALIER_LBL[ref].name}).` : `Palier atteint : <b>la liberté totale</b>, vos ${fmtEUR(r.dep)}/mois de dépenses couverts par votre patrimoine.`;
+    if (ref < 2) txt += ` La liberté totale (${fmtEUR(r.dep)}/mois) arrive ${fmtAge(r.ladder[2].b,'b')} à ce rythme.`;
+    $('h-palier').innerHTML = txt;
+  } else {
+    $('h-palier').innerHTML = `Aucun palier de liberté atteint avant 75 ans à ce rythme. <b>Votre levier est plus bas</b> : le curseur d'effort.`;
+  }
+  $('h-rente-a').textContent = fmtEUR(r.renteA) + '/mois';
+  $('h-rente-b').textContent = fmtEUR(r.renteB) + '/mois';
+  $('h-mult').textContent = r.mult === Infinity ? '' : `×${fmtX(r.mult)}`;
+  $('h-mult').style.display = r.mult === Infinity ? 'none' : '';
+
+  // impact
+  let impact;
+  if (ref >= 0){
+    impact = `Même épargne, même durée : seul l'endroit où dort votre argent change. Résultat : ${palierPhrase(ref, r.dep)} à <strong>${ageB}</strong> au lieu de ${ageA}, et <strong>${fmtEUR(r.renteB)}/mois</strong> à ${H} ans au lieu de ${fmtEUR(r.renteA)} : <strong>${fmtEUR(r.capB - r.capA)}</strong> de patrimoine d'écart, pour le même effort.`;
+  } else if (r.effort && r.effort.reachable){
+    impact = `À ${fmtEUR(d.epargne)}/mois, aucun palier avant 75 ans, même investi. Avec <strong>${fmtEUR(r.effort.P)}/mois</strong> (soit ${fmtEUR(r.effort.P - d.epargne)} de plus), vous atteignez 500 € de rente durable à ${H} ans. Le curseur ci-dessous vous montre le chemin.`;
+  } else {
+    impact = `À effort constant, l'écart entre vos deux trajectoires atteint <strong>${fmtEUR(r.capB - r.capA)}</strong> à ${H} ans. Le curseur ci-dessous montre ce qu'un effort supplémentaire change.`;
+  }
+  $('r-impact').innerHTML = impact;
+
+  // échelle
+  for (let i = 0; i < 3; i++){
+    const a = r.ladder[i].a, b = r.ladder[i].b, fa = fmtAge(a,'a'), fb = fmtAge(b,'b');
+    $(`l${i}a`).textContent = fa;
+    let chip = '';
+    if (isAge(fb) && isAge(fa) && Math.round(a - b) >= 1) chip = `<small>${Math.round(a - b)} an${Math.round(a-b)>1?'s':''} plus tôt</small>`;
+    else if (isAge(fb) && !isAge(fa)) chip = `<small>hors de portée sur livret</small>`;
+    $(`l${i}b`).innerHTML = fb + chip;
+    $(`row${i}`).classList.toggle('ref', i === ref);
+  }
+  $('l2lbl').innerHTML = `Liberté totale<small>${fmtEUR(r.dep)} / mois, vos dépenses couvertes</small>`;
+  $('cap-a').textContent = '~' + fmtEUR(r.capA); $('cap-b').textContent = '~' + fmtEUR(r.capB);
+
+  // effort : prochain palier
+  const ef = r.effort;
+  if (!ef){
+    $('effort').hidden = false; $('btn-effort').hidden = true;
+    $('effort-txt').innerHTML = `Tous les paliers, liberté totale incluse, sont atteints avant ${H} ans à ce rythme.`;
+  } else if (ef.reachable && ef.P > d.epargne){
+    $('effort').hidden = false; $('btn-effort').hidden = false;
+    $('effort-txt').innerHTML = `Repère : <b>${fmtEUR(ef.P)}/mois</b> (+${fmtEUR(ef.P - d.epargne)}) pour ${PALIER_LBL[ef.idx].short} à ${H} ans.`;
+    $('btn-effort').dataset.p = ef.P;
+  } else if (!ef.reachable){
+    $('effort').hidden = false; $('btn-effort').hidden = true;
+    $('effort-txt').innerHTML = `${PALIER_LBL[ef.idx].short.charAt(0).toUpperCase() + PALIER_LBL[ef.idx].short.slice(1)} à ${H} ans demanderait plus de ${fmtEUR(ef.P)}/mois : avec ce revenu, c'est l'horizon qui devra bouger, pas seulement l'effort.`;
+  } else { $('effort').hidden = true; }
+
+  drawChart(d, r);
+}
+
+/* ---------- CHART SVG ---------- */
+function drawChart(d, r){
+  const H = r.horizon;
+  const svg = $('svg-chart'); const W = 600, Hh = 250, padL = 8, padR = 74, padT = 22, padB = 26;
+  const years = H - d.age;
+  const ptsA = [], ptsB = [];
+  let st = livretInit(d.capital);
+  for (let y = 0; y <= years; y++){
+    ptsA.push(st.L + st.S);
+    ptsB.push(fv(d.epargne, d.capital, y*12, R.invest));
+    for (let m = 0; m < 12; m++) st = livretStep(st, d.epargne);
+  }
+  const max = Math.max(...ptsB, r.cibles[0]) * 1.08;
+  const X = i => padL + (W - padL - padR) * (i / years);
+  const Y = v => padT + (Hh - padT - padB) * (1 - v / max);
+  const path = pts => pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const area = pts => path(pts) + ` L${X(years).toFixed(1)},${Y(0)} L${X(0)},${Y(0)} Z`;
+  const endA = ptsA[years], endB = ptsB[years];
+  const lbl = ['500 €/mois', '1 000 €/mois', 'Liberté totale'];
+  let paliers = '', lastY = Infinity;
+  [2, 1, 0].forEach(i => {                      // du plus haut au plus bas : la liberté totale a priorité
+    const c = r.cibles[i];
+    if (c > max * 0.97 || c < max * 0.06) return;
+    if (Math.abs(Y(c) - lastY) < 26) return;   // évite les libellés qui se chevauchent
+    lastY = Y(c);
+    paliers += `<line x1="${padL}" y1="${Y(c).toFixed(1)}" x2="${W-padR}" y2="${Y(c).toFixed(1)}" stroke="rgba(255,255,255,.28)" stroke-dasharray="3 5"/>
+      <text x="${padL+4}" y="${(Y(c)-5).toFixed(1)}" fill="#9BB3D0" font-size="13" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif">${lbl[i]}</text>`;
+  });
+  const yA = Y(endA)+4, yB = Y(endB)+4;
+  const yAlab = Math.abs(yA - yB) < 16 ? yB + 16 : yA;
+  svg.innerHTML = `
+    <defs><linearGradient id="mrlib-gT" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00F5C0" stop-opacity=".28"/><stop offset="100%" stop-color="#00F5C0" stop-opacity="0"/>
+    </linearGradient></defs>
+    <line x1="${padL}" y1="${Y(0)}" x2="${W-padR}" y2="${Y(0)}" stroke="rgba(255,255,255,.15)"/>
+    ${paliers}
+    <path d="${area(ptsB)}" fill="url(#mrlib-gT)"/>
+    <path d="${path(ptsB)}" fill="none" stroke="#00F5C0" stroke-width="2.5"/>
+    <path d="${path(ptsA)}" fill="none" stroke="#FF3B4E" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="${padL}" y="${Hh-6}" fill="#7D93B3" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif">${d.age} ans</text>
+    <text x="${W-padR}" y="${Hh-6}" fill="#7D93B3" font-size="13" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif">${H} ans</text>
+    <text x="${W-padR+6}" y="${yB.toFixed(1)}" fill="#00F5C0" font-size="14" font-weight="800" font-family="ui-sans-serif, system-ui, sans-serif">${Math.round(endB/1000)} k€</text>
+    <text x="${W-padR+6}" y="${Math.min(yAlab, Hh-30).toFixed(1)}" fill="#FF8B97" font-size="14" font-weight="700" font-family="ui-sans-serif, system-ui, sans-serif">${Math.round(endA/1000)} k€</text>`;
+}
+
+/* ---------- SLIDER ---------- */
+function initSlider(d){
+  const s = $('slider');
+  const base = state.res;
+  const efP = base.effort && base.effort.reachable ? base.effort.P + 50 : 0;
+  s.max = Math.min(Math.max(d.epargne*3, 600, efP), Math.max(d.revenu - 200, d.epargne));
+  s.min = 0; s.value = d.epargne;
+  $('slider-val').textContent = `${d.epargne.toLocaleString('fr-FR')} € /mois`;
+  $('slider-note').classList.remove('show');
+  const apply = (ep) => {
+    $('slider-val').textContent = `${ep.toLocaleString('fr-FR')} € /mois`;
+    if (ep === d.epargne){ $('slider-note').classList.remove('show'); render(d, base); return; }
+    const altD = { ...d, epargne: ep }, alt = compute(altD);
+    render(altD, alt);
+    const dR = alt.renteB - base.renteB;
+    const bi = base.ref >= 0 ? base.ref : 0;
+    let mv = '';
+    const before = base.ladder[bi].b, after = alt.ladder[bi].b;
+    if (alt.ref > base.ref)
+      mv = ` · <strong>${alt.ref < 2 ? PALIER_LBL[alt.ref].short + ' de rente atteints' : 'liberté totale atteinte'} à ${fmtAge(alt.ladder[alt.ref].b,'b')}</strong>`;
+    else if (before <= CONFIG.ageTard && after < before - 0.5)
+      mv = ` · ${bi < 2 ? PALIER_LBL[bi].short : 'liberté totale'} : <strong>${Math.max(1, Math.round(before - after))} an(s) plus tôt</strong>`;
+    else if (before > CONFIG.ageTard && after <= CONFIG.ageTard)
+      mv = ` · <strong>${bi < 2 ? PALIER_LBL[bi].short + ' de rente atteints' : 'liberté totale atteinte'} à ${fmtAge(after,'b')}</strong>`;
+    $('slider-note').innerHTML =
+      `${ep > d.epargne ? '+' : ''}${(ep - d.epargne).toLocaleString('fr-FR')} €/mois → rente de <strong>${fmtEUR(alt.renteB)}/mois</strong> à ${alt.horizon} ans (${dR>=0?'+':''}${fmtEUR(dR)})${mv}.`;
+    $('slider-note').classList.add('show');
+  };
+  s.oninput = () => { trackEvent('slider_used', { ep: +s.value }); apply(+s.value); };
+  $('btn-effort').onclick = () => {
+    const p = +$('btn-effort').dataset.p; if (!p) return;
+    if (p > +s.max) s.max = p;
+    s.value = p; trackEvent('effort_tested', { ep: p }); apply(p);
+    s.scrollIntoView({ behavior:'smooth', block:'center' });
+  };
+}
+
+})();
+</script>
